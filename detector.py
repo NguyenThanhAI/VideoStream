@@ -1,6 +1,7 @@
 import sys
 import os
 import numpy as np
+import cv2
 import mrcnn.config
 import mrcnn.utils
 from mrcnn.model import MaskRCNN
@@ -12,12 +13,12 @@ class MaskRCNNConfig(mrcnn.config.Config):
     NUM_CLASSES = 1 + 80
     DETECTION_MIN_CONFIDENCE = 0.0
 
-ROOT_DIR = os.path.abspath("../")
+ROOT_DIR = os.path.abspath("./")
 sys.path.append(ROOT_DIR)
 
 
 class Detector(object):
-    def __init__(self, checkpoint_name="mask_rcnn_cars_and_vehicles_0008.h5", detection_vehicle_thresh=0.4):
+    def __init__(self, checkpoint_name="mask_rcnn_coco.h5", detection_vehicle_thresh=0.4):
         PRETRAINED_DIR = ROOT_DIR
 
         PRETRAINED_PATH = os.path.join(PRETRAINED_DIR, checkpoint_name)
@@ -46,4 +47,23 @@ class Detector(object):
 
         for det_id, (roi, score, class_id, mask) in enumerate(zip(rois, scores, class_ids, masks)):
             if score >= self.detection_vehicle_thresh and class_id in [3, 8, 6]:
-                detections_list.append()
+                y_min, x_min, y_max, x_max = roi
+                detections_list.append((x_min, y_min, x_max, y_max))
+
+        return detections_list
+
+#cap = cv2.VideoCapture("TheMountainRun_4K.mp4")
+#detector = Detector()
+
+#while True:
+#    ret, frame = cap.read()
+#
+#    if not ret:
+#        break
+#
+#    bboxes = detector(frame)
+#
+#    #print(bboxes)
+#
+#    cv2.imshow("", frame)
+#    cv2.waitKey(1)

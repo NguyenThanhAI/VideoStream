@@ -1,7 +1,7 @@
 import os
 from threading import Thread, Lock
 from multiprocessing import Process, Lock, Queue
-#from queue import Queue
+#from frame_queue import Queue
 
 queue = Queue(maxsize=1000)
 lock = Lock()
