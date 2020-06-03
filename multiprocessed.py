@@ -18,7 +18,7 @@ def get_args():
 class MultiProcessedVideoStream(object):
     def __init__(self, video_source, queue):
         self.cap = cv2.VideoCapture(video_source)
-        self.cap.set(cv2.CAP_PROP_POS_FRAMES, 2000)
+        #self.cap.set(cv2.CAP_PROP_POS_FRAMES, 2000)
         self.queue = queue
         self.frame_id = 0
         self.stopped = False
@@ -26,7 +26,7 @@ class MultiProcessedVideoStream(object):
 
     def start(self):
         self.process = Thread(target=self.update, args=()) # Không thể dùng Process được :( :( :( :(
-        #self.process.daemon = True
+        self.process.daemon = True
         print("Start multiprocess video stream")
         self.process.start()
         #self.process.join()
@@ -143,5 +143,5 @@ if __name__ == '__main__':
     time.sleep(30)
     videostream.start()
     getframe.start()
-    #detectprocess.join() # Huhu, nếu uncomment hai dòng này thì các process sẽ không chạy làm chương trình bị treo
-    #getframe.join()
+    detectprocess.join() # Huhu, nếu uncomment hai dòng này thì các process sẽ không chạy làm chương trình bị treo
+    getframe.join()
