@@ -18,7 +18,7 @@ def get_args():
 class MultiProcessedVideoStream(object):
     def __init__(self, video_source, queue):
         self.cap = cv2.VideoCapture(video_source)
-        #self.cap.set(cv2.CAP_PROP_POS_FRAMES, 2000)
+        #self.cap.set(cv2.CAP_PROP_POS_FRAMES, 70000)
         self.queue = queue
         self.frame_id = 0
         self.stopped = False
@@ -26,10 +26,10 @@ class MultiProcessedVideoStream(object):
 
     def start(self):
         self.process = Thread(target=self.update, args=()) # Không thể dùng Process được :( :( :( :(
-        self.process.daemon = True
+        #self.process.daemon = True
         print("Start multiprocess video stream")
         self.process.start()
-        #self.process.join()
+        #self.process.join() # Thêm join vào process get frame không chạy được :( :( :(
 
     def update(self):
         while not self.stopped:
@@ -44,7 +44,7 @@ class MultiProcessedVideoStream(object):
 
     def stop(self):
         self.stopped = True
-        self.process.join() # Chú ý vị trí đặt join()
+        #self.process.join() # Chú ý vị trí đặt join()
 
 
 class DetectProcess(Process):
@@ -65,6 +65,7 @@ class DetectProcess(Process):
             if not self.input_queue.empty():
                 #try:
                 self.frame_id, self.time_stamp, self.frame = self.input_queue.get(timeout=None)
+                print("Process detecting")
                 bboxes = detector(frame=self.frame)
                 for bbox in bboxes:
                     x_min, y_min, x_max, y_max = bbox
@@ -84,7 +85,7 @@ class DetectProcess(Process):
 
     def stop(self):
         self.stopped = True
-        self.join()
+        #self.join()
 
     def log(self):
         while True:
@@ -115,7 +116,7 @@ class GetFrameProcess(Process):
 
     def stop(self):
         self.stopped = True
-        self.join()
+        #self.join()
 
     def log(self):
         while True:
@@ -140,7 +141,7 @@ if __name__ == '__main__':
     detectprocess = DetectProcess(frame_queue=frame_queue, bbox_queue=bbox_queue)
     getframe = GetFrameProcess(frame_queue=frame_queue)
     detectprocess.start()
-    time.sleep(30)
+    #time.sleep(50)
     videostream.start()
     getframe.start()
     detectprocess.join() # Huhu, nếu uncomment hai dòng này thì các process sẽ không chạy làm chương trình bị treo
