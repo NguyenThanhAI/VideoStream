@@ -39,7 +39,7 @@ class MultiProcessedVideoStream(object):
                 if not ret:
                     self.stop()
                 self.queue.put((self.frame_id, time_stamp, frame))
-                print("Thread stream, {}, {}, {}".format(os.getpid(), os.getppid(), self.queue.qsize()))
+                #print("Thread stream, {}, {}, {}".format(os.getpid(), os.getppid(), self.queue.qsize()))
                 self.frame_id += 1
 
     def stop(self):
@@ -67,6 +67,7 @@ class DetectProcess(Process):
                 self.frame_id, self.time_stamp, self.frame = self.input_queue.get(timeout=None)
                 print("Process detecting")
                 bboxes = detector(frame=self.frame)
+                print("Process detected")
                 for bbox in bboxes:
                     x_min, y_min, x_max, y_max = bbox
                     cv2.rectangle(self.frame, (x_min, y_min), (x_max, y_max), (255, 0, 0))
@@ -105,7 +106,7 @@ class GetFrameProcess(Process):
                 try:
                     self.frame_id, self.time_stamp, self.frame = self.input_queue.get(timeout=None)
                     self.display()
-                    print("Process get frame, {}, {}, {}".format(os.getpid(), os.getppid(), self.input_queue.qsize()))
+                    #print("Process get frame, {}, {}, {}".format(os.getpid(), os.getppid(), self.input_queue.qsize()))
                 except:
                     print("Time out")
                     self.stop()
