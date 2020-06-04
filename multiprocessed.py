@@ -37,6 +37,8 @@ class MultiProcessedVideoStream(object):
                 ret, frame = self.cap.read()
                 time_stamp = datetime.now()
                 if not ret:
+                    self.queue.put((None, None, None), block=True)
+                    self.queue.put((None, None, None), block=True)
                     self.stop()
                 self.queue.put((self.frame_id, time_stamp, frame))
                 #print("Thread stream, {}, {}, {}".format(os.getpid(), os.getppid(), self.queue.qsize()))
@@ -65,17 +67,23 @@ class DetectProcess(Process):
             if not self.input_queue.empty():
                 #try:
                 self.frame_id, self.time_stamp, self.frame = self.input_queue.get(timeout=None)
-                print("Process detecting")
-                bboxes = detector(frame=self.frame)
-                print("Process detected")
-                for bbox in bboxes:
-                    x_min, y_min, x_max, y_max = bbox
-                    cv2.rectangle(self.frame, (x_min, y_min), (x_max, y_max), (255, 0, 0))
-                self.display()
-                print("Process detecting, {}, {}, {}".format(os.getpid(), os.getppid(), self.input_queue.qsize()))
-                #except:
-                #    print("Exit")
-                #    self.stop()
+                if self.frame is None:
+                    print("aaaaaaaaa")
+                    #self.stop()
+                    break
+                try:
+                    print("Process detecting")
+                    bboxes = detector(frame=self.frame)
+                    print("Process detected")
+
+                    for bbox in bboxes:
+                        x_min, y_min, x_max, y_max = bbox
+                        cv2.rectangle(self.frame, (x_min, y_min), (x_max, y_max), (255, 0, 0))
+                    self.display()
+                    print("Process detecting, {}, {}, {}".format(os.getpid(), os.getppid(), self.input_queue.qsize()))
+                except Exception as e:
+                    print("Exit", e)
+                    self.stop()
             #else:
             #    print("Stop")
             #    self.stop()
@@ -105,10 +113,14 @@ class GetFrameProcess(Process):
             if not self.input_queue.empty():
                 try:
                     self.frame_id, self.time_stamp, self.frame = self.input_queue.get(timeout=None)
+                    if self.frame is None:
+                        print("bbbbbbbbb")
+                        #self.stop()
+                        break
                     self.display()
                     #print("Process get frame, {}, {}, {}".format(os.getpid(), os.getppid(), self.input_queue.qsize()))
-                except:
-                    print("Time out")
+                except Exception as e:
+                    print("Time out", e)
                     self.stop()
 
     def display(self):
