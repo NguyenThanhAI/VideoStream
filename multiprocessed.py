@@ -47,7 +47,7 @@ class MultiProcessedVideoStream(object):
         #self.process.join() # Chú ý vị trí đặt join()
 
 
-class DetectProcess(Process):
+class DetectProcess(object):
     def __init__(self, frame_queue, bbox_queue):
         super(DetectProcess, self).__init__()
         self.input_queue = frame_queue
@@ -55,17 +55,18 @@ class DetectProcess(Process):
         self.stopped = False
         #self.detector = Detector()
         print("Init detect process, {}".format(os.getpid()))
-        #self.process = Process(target=self.log, args=())
+        self.process = Process(target=self.detect, args=())
         #self.process.daemon = True
-        #self.process.start()
+        self.process.start()
 
-    def run(self):
+    def detect(self):
         detector = Detector()
         while not self.stopped:
+            print(self.stopped)
             if not self.input_queue.empty():
                 #try:
                 self.frame_id, self.time_stamp, self.frame = self.input_queue.get(timeout=None)
-                print("Process detecting")
+                print("Process detecting", self.frame.shape)
                 bboxes = detector(frame=self.frame)
                 print("Process detected")
                 for bbox in bboxes:
@@ -86,7 +87,7 @@ class DetectProcess(Process):
 
     def stop(self):
         self.stopped = True
-        #self.join()
+        self.process.join()
 
     def log(self):
         while True:
@@ -141,9 +142,9 @@ if __name__ == '__main__':
     videostream = MultiProcessedVideoStream(video_source=args.video_source, queue=frame_queue)
     detectprocess = DetectProcess(frame_queue=frame_queue, bbox_queue=bbox_queue)
     getframe = GetFrameProcess(frame_queue=frame_queue)
-    detectprocess.start()
+    #detectprocess.start()
     #time.sleep(50)
     videostream.start()
     getframe.start()
-    detectprocess.join() # Huhu, nếu uncomment hai dòng này thì các process sẽ không chạy làm chương trình bị treo
+    #detectprocess.join() # Huhu, nếu uncomment hai dòng này thì các process sẽ không chạy làm chương trình bị treo
     getframe.join()
